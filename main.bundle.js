@@ -854,7 +854,7 @@ var SignupComponent = /** @class */ (function () {
 /***/ "../../../../../src/app/core/app/app-layout.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<main class=\"main-content\">\r\n  <div class=\"left-content\">\r\n    <app-sidebar></app-sidebar>\r\n  </div>\r\n\r\n  <div class=\"right-content\">\r\n    <div class=\"today\">\r\n      <app-day-entry [entry]=\"todayEntry\" [today]=\"true\"></app-day-entry>\r\n    </div>\r\n\r\n    <app-seasons\r\n      [initialDate]=\"initialDate\"\r\n      (whenSelected)=\"seasonSelected($event);\"\r\n      ></app-seasons>\r\n\r\n    <div class=\"story\">\r\n      <div class=\"summary\"></div>\r\n      <div class=\"entries\">\r\n        <app-day-entry *ngFor=\"let entry of entries | async\"\r\n          [entry]=\"toObservable(entry)\"></app-day-entry>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</main>\r\n"
+module.exports = "<main class=\"main-content\">\r\n  <div class=\"left-content\">\r\n    <app-sidebar></app-sidebar>\r\n  </div>\r\n\r\n  <div class=\"right-content\">\r\n    <div class=\"today\">\r\n      <app-day-entry [entry]=\"todayEntry$\" [today]=\"true\"></app-day-entry>\r\n    </div>\r\n\r\n    <app-seasons\r\n      [initialDate]=\"initialDate\"\r\n      (whenSelected)=\"seasonSelected($event);\"\r\n      ></app-seasons>\r\n\r\n    <div class=\"story\">\r\n      <div class=\"summary\"></div>\r\n      <div class=\"entries\">\r\n        <app-day-entry\r\n          *ngFor=\"let entry of entries$ | async\"\r\n          [entry]=\"toObservable(entry)\"\r\n          ></app-day-entry>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</main>\r\n"
 
 /***/ }),
 
@@ -1504,7 +1504,7 @@ var SeasonService = /** @class */ (function () {
 /***/ "../../../../../src/app/shared/seasons/seasons.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"seasons\">\r\n  <app-season-item *ngFor=\"let season of seasons\"\r\n    [season]=\"season\"\r\n    (click)=\"handleClick(season)\"\r\n    ></app-season-item>\r\n</div>\r\n"
+module.exports = "<div class=\"seasons\">\r\n  <app-season-item *ngFor=\"let season of seasons$ | async\"\r\n    [season]=\"season\"\r\n    (click)=\"handleClick(season)\"\r\n    ></app-season-item>\r\n</div>\r\n"
 
 /***/ }),
 
@@ -1546,28 +1546,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 var SeasonsComponent = /** @class */ (function () {
     function SeasonsComponent(seasonService) {
-        var _this = this;
         this.seasonService = seasonService;
         this.whenSelected = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["x" /* EventEmitter */]();
-        this.seasons = [];
-        this.seasonService.getAllObservables().subscribe(function (seasons) {
-            _this.seasons = seasons;
-        });
+        this.seasons$ = this.seasonService.getAllObservables();
     }
     SeasonsComponent.prototype.ngOnInit = function () {
         var _this = this;
-        // this.seasons = this.seasonService.getAll();
-        this.seasonService.getAllObservables().subscribe(function (seasons) {
-            _this.seasons = seasons;
-            console.log(_this.initialDate);
+        this.seasons$.subscribe(function (seasons) {
             if (_this.initialDate) {
-                var season = _this.seasons.filter(function (s) {
-                    console.log(s.datePrefix);
+                var season = seasons.filter(function (s) {
                     return s.datePrefix === _this.initialDate;
                 });
                 if (season && season.length > 0) {
-                    console.log(season);
-                    _this.whenSelected.emit(season);
+                    _this.whenSelected.emit(season[0]);
                 }
             }
         });
@@ -2168,12 +2159,14 @@ var UserService = /** @class */ (function () {
         return this.db
             .list(this.endpoint + "/" + this._authUser.uid + "/registros")
             .valueChanges()
-            .map(function (data) {
-            data.sort(function (a, b) {
-                return a < b ? -1 : 1;
-            });
-            return data;
-        });
+            .map(function (data) { return data.reverse(); });
+        // .map((data: DayEntry[]) => {
+        //   data.sort((a, b) => {
+        //     console.log(a, b);
+        //     return a.dateEntry < b.dateEntry ? -1 : 1;
+        //   });
+        //   return data;
+        // });
     };
     UserService.prototype.todayEntry = function () {
         var _this = this;
