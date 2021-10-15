@@ -1,2 +1,0 @@
-# meuponto
-Meu ponto
